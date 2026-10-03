@@ -1,0 +1,10 @@
+{
+  "python_version": "3.12",
+  "dependencies": ["."],
+  "graphs": {
+    "comic_drama": {
+      "path": "./server/workflows/comic_drama.py:graph",
+      "description": "接收用户原始创意，并确认可以进入策划。"
+    }
+  }
+}
