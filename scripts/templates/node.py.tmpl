@@ -1,0 +1,16 @@
+"""{{name}}。"""
+
+from server.states import ComicDramaState
+
+
+def {{name}}(state: ComicDramaState):
+    """{{name}}。"""
+    raw_requirement = state.get("raw_requirement", "")
+
+    if not raw_requirement:
+        raise ValueError("raw_requirement不能为空")
+
+    return {
+        "current_stage": "{{name}}",
+        "events": ["已完成{{name}}"],
+    }

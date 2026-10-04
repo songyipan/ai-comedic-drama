@@ -1,6 +1,9 @@
 """漫画剧状态定义。"""
+
 import operator
-from typing import Annotated, TypedDict
+from typing import Annotated, NotRequired, TypedDict
+
+from server.schema import CreativeRequirement
 
 
 class ComicDramaState(TypedDict):
@@ -17,3 +20,5 @@ class ComicDramaState(TypedDict):
     # 记录当前经过了哪些阶段
     # ["已接收用户创意", "已生成结构化创意需求", "已生成故事大纲",]
     events: Annotated[list[str], operator.add]
+
+    requirement: NotRequired[CreativeRequirement]

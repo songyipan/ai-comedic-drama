@@ -1,20 +1,20 @@
-"""漫画剧工作流图。"""
-
 from langgraph.graph import END, START, StateGraph
 
-from server.nodes import mark_planning_ready, receive_idea
+from server.model import TextModel, build_text_model
+from server.nodes import make_analyze_requirement, receive_idea
 from server.states import ComicDramaState
 
 
-def build_comic_drama_graph():
-    """连接接收创意和确认策划就绪两个节点。"""
+def build_graph(text_model: TextModel):
     builder = StateGraph(ComicDramaState)
     builder.add_node("receive_idea", receive_idea)
-    builder.add_node("mark_planning_ready", mark_planning_ready)
+    builder.add_node("analyze_requirement", make_analyze_requirement(text_model))
+
     builder.add_edge(START, "receive_idea")
-    builder.add_edge("receive_idea", "mark_planning_ready")
-    builder.add_edge("mark_planning_ready", END)
+    builder.add_edge("receive_idea", "analyze_requirement")
+    builder.add_edge("analyze_requirement", END)
+
     return builder.compile()
 
 
-graph = build_comic_drama_graph()
+graph = build_graph(build_text_model())
