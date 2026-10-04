@@ -3,7 +3,12 @@
 import operator
 from typing import Annotated, NotRequired, TypedDict
 
-from server.schema import CreativeRequirement
+from server.schema import (
+    CharacterProfile,
+    CreativeRequirement,
+    SceneProfile,
+    StoryOutline,
+)
 
 
 class ComicDramaState(TypedDict):
@@ -22,3 +27,8 @@ class ComicDramaState(TypedDict):
     events: Annotated[list[str], operator.add]
 
     requirement: NotRequired[CreativeRequirement]
+
+    story_outline: NotRequired[StoryOutline]
+
+    characters: NotRequired[list[CharacterProfile]]
+    scenes: NotRequired[list[SceneProfile]]

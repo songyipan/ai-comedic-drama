@@ -1,4 +1,4 @@
-.PHONY: server client package node model
+.PHONY: server client package node model schema prompt
 
 # 启动 LangGraph 开发服务，默认 http://127.0.0.1:2024
 server:
@@ -19,3 +19,11 @@ node:
 # 按提示在 server/model 下生成一个文本模型，并写入包导入
 model:
 	uv run python scripts/create_model.py
+
+# 按提示在 server/schema 下生成一个数据模型，并写入包导入
+schema:
+	uv run python scripts/create_schema.py
+
+# 按提示在 server/prompts 下生成一个提示词，并写入包导入
+prompt:
+	uv run python scripts/create_prompt.py
