@@ -1,4 +1,7 @@
-"""连接本地 LangGraph 服务，跑一次漫画剧图。"""
+"""
+连接本地 LangGraph 服务，跑一次漫画剧图。
+仅作为例子，有需要可以自己先前端等
+"""
 
 from langgraph_sdk import get_sync_client
 
