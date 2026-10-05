@@ -13,7 +13,10 @@ def build_text_model() -> TextModel:
         planning_fault = fake_settings.planning_fault.strip().lower() or "none"
         if planning_fault not in {"none", "characters", "scenes"}:
             raise ValueError(f"不支持的 FAKE_PLANNING_FAULT：{planning_fault}")
-        return FakeTextModel(planning_fault=planning_fault)
+        storyboard_fault = fake_settings.storyboard_fault.strip().lower() or "none"
+        if storyboard_fault not in {"none", "duplicate_id", "unknown_character", "duration_mismatch"}:
+            raise ValueError(f"不支持的 FAKE_STORYBOARD_FAULT：{storyboard_fault}")
+        return FakeTextModel(planning_fault=planning_fault, storyboard_fault=storyboard_fault)
     if provider == "ark":
         api_key = ark_settings.api_key.strip()
         model = ark_settings.model.strip()

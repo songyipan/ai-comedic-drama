@@ -2,6 +2,8 @@
 
 import operator
 from typing import Annotated, NotRequired, TypedDict
+from server.schema.storyboard import Storyboard
+from server.schema.storyboard_validation import StoryboardValidation
 
 from server.schema import (
     CharacterProfile,
@@ -27,6 +29,9 @@ class ComicDramaState(TypedDict):
     events: Annotated[list[str], operator.add]
 
     requirement: NotRequired[CreativeRequirement]
+
+    storyboard: NotRequired[list[Storyboard]]
+    storyboard_validation: NotRequired[StoryboardValidation]
 
     story_outline: NotRequired[StoryOutline]
 
