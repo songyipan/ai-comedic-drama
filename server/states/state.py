@@ -3,7 +3,7 @@
 import operator
 from typing import Annotated, NotRequired, TypedDict
 from server.schema.storyboard import Storyboard
-from server.schema.storyboard_validation import StoryboardValidation
+from server.schema.planning_graph.storyboard_validation import StoryboardValidation
 
 from server.schema import (
     CharacterProfile,

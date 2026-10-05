@@ -4,7 +4,7 @@ import json
 from typing import Any
 from arkruntime import Ark
 
-from server.prompts import (
+from server.prompts.planning_graph import (
     CHARACTER_PROMPT,
     SCENE_PROMPT,
     STORY_PROMPT,

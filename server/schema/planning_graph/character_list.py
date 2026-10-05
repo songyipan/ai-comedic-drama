@@ -6,7 +6,7 @@ from pydantic import (
     Field,
 )
 
-from .character_profile import CharacterProfile
+from server.schema.character_profile import CharacterProfile
 
 
 class CharacterList(BaseModel):

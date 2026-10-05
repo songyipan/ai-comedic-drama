@@ -6,7 +6,7 @@ from pydantic import (
     Field,
 )
 
-from .storyboard import Storyboard
+from server.schema.storyboard import Storyboard
 
 
 class StoryBoardList(BaseModel):

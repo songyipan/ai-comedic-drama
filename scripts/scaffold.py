@@ -56,6 +56,26 @@ def ask_name(message="模块名: ", example="plan_outline"):
         print(f"模块名需要是合法的 Python 标识符，例如 {example}")
 
 
+def ask_subgraph():
+    """询问子图名。留空表示公共资产，生成到类型目录顶层。"""
+    while True:
+        raw_value = prompt("子图名（例如 planning_graph，留空表示公共）: ")
+        if not raw_value:
+            return None
+        subgraph = raw_value.removesuffix(".py").strip()
+        if IDENTIFIER.fullmatch(subgraph):
+            return subgraph.lower()
+        print("子图名需要是合法的 Python 标识符，例如 planning_graph")
+
+
+def kind_parent(kind, subgraph):
+    """在类型目录（nodes/prompts/schema）下按子图定位父目录；子图为空表示公共。"""
+    parent = ROOT / "server" / kind
+    if subgraph:
+        parent = parent / subgraph
+    return parent
+
+
 def pascal_case(module_name):
     """把 snake_case 模块名转成类名。"""
     return "".join(part.capitalize() for part in module_name.split("_") if part)
@@ -117,9 +137,15 @@ def insert_import(text, import_line):
 
     lines = text.splitlines()
     last_import = None
+    depth = 0
     for index, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("from .") or stripped.startswith("import "):
+        depth_before = depth
+        depth += line.count("(") - line.count(")")
+        starts_import = depth_before == 0 and (
+            line.strip().startswith("from .") or line.strip().startswith("import ")
+        )
+        if starts_import or (depth_before > 0 and depth == 0):
+            # 导入语句的起始行，或多行导入的收尾行
             last_import = index
 
     if last_import is None:

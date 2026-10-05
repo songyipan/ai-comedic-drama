@@ -6,7 +6,7 @@ from pydantic import (
     Field,
 )
 
-from .scene_profile import SceneProfile
+from server.schema.scene_profile import SceneProfile
 
 
 class SceneList(BaseModel):

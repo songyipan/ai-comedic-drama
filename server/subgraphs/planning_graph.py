@@ -4,8 +4,8 @@ from typing import Literal
 
 from langgraph.graph import END, START, StateGraph
 
-from server.model import TextModel, build_text_model
-from server.nodes import (
+from server.model import TextModel
+from server.nodes.planning_graph import (
     finish_planning,
     make_analyze_requirement,
     make_generate_characters,
@@ -59,6 +59,3 @@ def build_planning_graph(text_model: TextModel):
     builder.add_edge("storyboard_invalid", END)
 
     return builder.compile()
-
-
-planning_graph = build_planning_graph(build_text_model())
