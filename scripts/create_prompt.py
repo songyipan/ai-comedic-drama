@@ -1,6 +1,6 @@
 """在 server/prompts 下生成一个提示词常量，并写入包导入。"""
 
-from scaffold import ROOT, ask_name, create_module, load_template
+from scaffold import ROOT, ask_name, create_module, load_template, sanitize_text
 
 
 def main():
@@ -29,7 +29,7 @@ def ask_prompt_text():
         lines.append(line)
     if not lines:
         raise SystemExit("已取消")
-    return "\n".join(lines)
+    return sanitize_text("\n".join(lines))
 
 
 def python_literal(text):

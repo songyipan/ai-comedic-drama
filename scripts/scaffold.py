@@ -176,9 +176,43 @@ def upsert_all(text, export_name):
 def prompt(message):
     """读取一行输入。遇到文件结束时取消。"""
     try:
-        return input(message).strip()
+        return sanitize_text(input(message).strip())
     except EOFError as error:
         raise SystemExit("\n已取消") from error
+
+
+def sanitize_text(text):
+    """还原输入里的孤立代理字符，避免写文件时报 surrogates not allowed。
+
+    终端送来的非法 UTF-8 字节会被 stdin 按 surrogateescape 记成代理字符。这里先
+    还原出原始字节，再按常见损坏来源尝试恢复：被拆成 CESU-8 的增补平面字符（通常
+    是 emoji），以及 GBK 编码的中文；都失败时用替换符号占位并提示。
+    """
+    if not any("\ud800" <= char <= "\udfff" for char in text):
+        return text
+    raw = text.encode("utf-8", "surrogateescape")
+    attempts = (
+        ("CESU-8", decode_cesu8),
+        ("GBK", lambda data: data.decode("gbk")),
+    )
+    for label, decode in attempts:
+        try:
+            recovered = decode(raw)
+        except UnicodeDecodeError:
+            continue
+        print(f"输入里有编码损坏的字符，已按 {label} 恢复")
+        return recovered
+    print("输入里有无法恢复的字符，已用替换符号代替，请检查生成的内容")
+    return raw.decode("utf-8", "replace")
+
+
+def decode_cesu8(data):
+    """把 CESU-8 字节里被拆开的代理对拼回单个字符。"""
+    return (
+        data.decode("utf-8", "surrogatepass")
+        .encode("utf-16-le", "surrogatepass")
+        .decode("utf-16-le")
+    )
 
 
 def display_path(path):
