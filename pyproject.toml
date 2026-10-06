@@ -3,14 +3,21 @@ name = "ai-comic-drama"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-    "arkruntime==0.6.0",
+    "langchain==1.4.3",
+    "langchain-anthropic==1.7.5",
+    "langchain-openai==1.6.7",
     "langgraph==1.2.11",
     "langgraph-sdk==0.4.4",
     "pydantic==2.13.5",
     "pydantic-settings==2.15.0",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [dependency-groups]
 dev = [
+    "debugpy>=1.8.22",
     "langgraph-cli[inmem]==0.4.31",
+    "pytest>=9.1.1",
 ]

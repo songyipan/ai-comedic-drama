@@ -1,8 +1,9 @@
-"""创建火山模型 文本系列的"""
+"""DeepSeek 文本模型。用 LangChain 的 provider 选择接口，并直接做结构化输出。"""
 
 import json
 from typing import Any
-from arkruntime import Ark
+
+from langchain.chat_models import init_chat_model
 
 from server.prompts.planning_graph import (
     CHARACTER_PROMPT,
@@ -22,42 +23,81 @@ from server.schema import (
     StoryBoardList,
 )
 
+# DeepSeek 同时提供这两套兼容接口，由 DEEPSEEK_MODEL_PROVIDER 选择。
+DEEPSEEK_BASE_URLS = {
+    "openai": "https://api.deepseek.com",
+    "anthropic": "https://api.deepseek.com/anthropic",
+}
 
-class ArkTextModel:
-    """火山方舟结构化输出适配器。"""
 
-    def __init__(self, *, api_key: str, model: str) -> None:
-        self._client = Ark.volc(api_key=api_key)
-        self._model = model
+class DeepSeekTextModel:
+    """把策划步骤的 Pydantic 契约交给 DeepSeek，节点不接触厂商 SDK。"""
 
-    def _parse(self, *, system: str, payload: dict[str, Any], schema: type[Any]) -> Any:
-        """各策划调用共用第 04 篇验证过的结构化输出方式。"""
-        completion = self._client.beta.chat.completions.parse(
-            model=self._model,
-            messages=[
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model: str,
+        model_provider: str = "",
+        chat_model: Any | None = None,
+    ) -> None:
+        if chat_model is None:
+            provider = model_provider.strip().lower()
+            base_url = DEEPSEEK_BASE_URLS.get(provider)
+            if base_url is None:
+                allowed = "、".join(DEEPSEEK_BASE_URLS)
+                raise ValueError(
+                    f"不支持的 DEEPSEEK_MODEL_PROVIDER：{model_provider}。可选值为 {allowed}"
+                )
+            # DeepSeek 默认开着思考模式，这时不接受结构化输出用的 tool_choice。
+            provider_kwargs: dict[str, Any] = {"max_tokens": 8192}
+            if provider == "openai":
+                provider_kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
+            else:
+                provider_kwargs["thinking"] = {"type": "disabled"}
+            chat_model = init_chat_model(
+                model,
+                model_provider=provider,
+                api_key=api_key,
+                base_url=base_url,
+                **provider_kwargs,
+            )
+        self._chat = chat_model
+
+    def _invoke(
+        self,
+        *,
+        system: str,
+        user_content: str,
+        schema: type[Any],
+        empty_message: str,
+    ) -> Any:
+        # function_calling 会在这一次调用内部塞一个临时 tool，解析后只返回 Pydantic 对象。
+        parsed = self._chat.with_structured_output(schema, method="function_calling").invoke(
+            [
                 {"role": "system", "content": system},
-                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-            ],
-            response_format=schema,
+                {"role": "user", "content": user_content},
+            ]
         )
-        parsed = completion.choices[0].message.parsed
         if parsed is None:
-            raise ValueError("文本模型没有返回可解析的策划结果")
+            raise ValueError(empty_message)
         return parsed
 
-    def analyze_requirement(self, raw_requirement: str) -> CreativeRequirement:
-        completion = self._client.beta.chat.completions.parse(
-            model=self._model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": raw_requirement},
-            ],
-            response_format=CreativeRequirement,
+    def _parse(self, *, system: str, payload: dict[str, Any], schema: type[Any]) -> Any:
+        return self._invoke(
+            system=system,
+            user_content=json.dumps(payload, ensure_ascii=False),
+            schema=schema,
+            empty_message="文本模型没有返回可解析的策划结果",
         )
-        requirement = completion.choices[0].message.parsed
-        if requirement is None:
-            raise ValueError("文本模型没有返回可解析的结构化需求")
-        return requirement
+
+    def analyze_requirement(self, raw_requirement: str) -> CreativeRequirement:
+        return self._invoke(
+            system=SYSTEM_PROMPT,
+            user_content=raw_requirement,
+            schema=CreativeRequirement,
+            empty_message="文本模型没有返回可解析的结构化需求",
+        )
 
     def generate_story_outline(self, requirement: CreativeRequirement) -> StoryOutline:
         return self._parse(
@@ -102,7 +142,6 @@ class ArkTextModel:
         result = self._parse(
             system=STORYBOARD_PROMPT,
             payload={
-                # 把硬性约束从长对象里提出来置顶，减少模型在数值合计与封闭 ID 引用上的漂移
                 "target_shot_count": requirement.shot_count,
                 "target_duration_seconds": requirement.duration_seconds,
                 "allowed_character_ids": [character.character_id for character in characters],
