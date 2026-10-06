@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "LangGraph: 启动调试（F5 直接跑）",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "langgraph_cli",
+      "args": ["dev", "--no-reload", "--no-browser"],
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true
+    },
+    {
+      "name": "LangGraph: 附加调试（配合 make debug）",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "127.0.0.1",
+        "port": 5678
+      },
+      "justMyCode": true
+    }
+  ]
+}

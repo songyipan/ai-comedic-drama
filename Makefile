@@ -1,8 +1,12 @@
-.PHONY: dev client package node model schema prompt
+.PHONY: dev debug client package node model schema prompt
 
 # 启动 LangGraph 开发服务，默认 http://127.0.0.1:2024
 dev:
 	uv run langgraph dev
+
+# 断点调试服务：先 make debug，再到 VS Code F5 附加（LangGraph: 附加调试），断点才会放行
+debug:
+	uv run langgraph dev --debug-port 5678 --wait-for-client --no-reload --no-browser
 
 # 连接本地服务，跑一次漫画剧图
 client:
